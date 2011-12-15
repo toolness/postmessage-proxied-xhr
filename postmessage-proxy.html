@@ -3,15 +3,26 @@
 <title>PostMessage Proxy</title>
 <p>You should not see this text.</p>
 <script src="postmessage-proxied-xhr.js"></script>
+<script src="settings.js"></script>
 <script>
-var SimpleChannel = PostMessageProxiedXHR.utils.SimpleChannel;
+var utils = PostMessageProxiedXHR.utils;
 
 if (window.parent !== window) {
-  var channel = SimpleChannel(window.parent, "*", function(data) {
+  var origin = Settings.allowOrigin;
+  var channel = utils.SimpleChannel(window.parent, origin, function(data) {
     switch (data.cmd) {
       case "send":
-      // TODO: Validate arguments.
+      // TODO: Validate URL, ensure it's on our domain.
       var req = new XMLHttpRequest();
+      var headers = utils.decode(data.headers);
+      var isValidMethod = (utils.inArray(data.method.toUpperCase(),
+                                         Settings.allowMethods) != -1);
+
+      if (!isValidMethod) {
+        utils.error("method '" + data.method + "' is not allowed");
+        return;
+      }
+      
       req.open(data.method, data.url);
       req.onreadystatechange = function() {
         channel.send({
@@ -22,6 +33,17 @@ if (window.parent !== window) {
           responseText: req.responseText
         });
       };
+      
+      for (var name in headers) {
+        // TODO: If the header isn't allowed, should we bail?
+        if (utils.inArray(name, Settings.allowHeaders) != -1)
+          req.setRequestHeader(name, headers[name]);
+        else {
+          utils.error("header '" + name + "' is not allowed.");
+          return;
+        }
+      }
+      
       req.send(data.body || null);
       break;
     }

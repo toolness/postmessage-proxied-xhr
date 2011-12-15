@@ -63,7 +63,34 @@ var PostMessageProxiedXHR = (function() {
     utils: {
       decode: decode,
       encode: encode,
-      SimpleChannel: SimpleChannel
+      SimpleChannel: SimpleChannel,
+      error: function(msg) {
+        if (window.console && window.console.error)
+          window.console.error(msg);
+      },
+      // Taken from jQuery.
+      inArray: function( elem, array, i ) {
+    		var len;
+        var indexOf = Array.prototype.indexOf;
+        
+    		if ( array ) {
+    			if ( indexOf ) {
+    				return indexOf.call( array, elem, i );
+    			}
+
+    			len = array.length;
+    			i = i ? i < 0 ? Math.max( 0, len + i ) : i : 0;
+
+    			for ( ; i < len; i++ ) {
+    				// Skip accessing in sparse arrays
+    				if ( i in array && array[ i ] === elem ) {
+    					return i;
+    				}
+    			}
+    		}
+
+    		return -1;
+    	}
     },
     buildConstructor: function buildConstructor(baseURL) {
       if (typeof(baseURL) == "undefined")
@@ -72,11 +99,15 @@ var PostMessageProxiedXHR = (function() {
       return function PostMessageProxiedXMLHttpRequest() {
         var method;
         var url;
-
+        var headers = {};
+        
         var self = {
           open: function(aMethod, aUrl) {
             method = aMethod;
             url = aUrl;
+          },
+          setRequestHeader: function(name, value) {
+            headers[name] = value;
           },
           send: function(body) {
             var iframeURL = baseURL + "postmessage-proxy.html";
@@ -88,6 +119,7 @@ var PostMessageProxiedXHR = (function() {
                   cmd: "send",
                   method: method,
                   url: url,
+                  headers: encode(headers),
                   body: body || ""
                 });
                 break;

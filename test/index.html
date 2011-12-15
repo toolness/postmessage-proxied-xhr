@@ -16,6 +16,11 @@ module("general");
 var utils = PostMessageProxiedXHR.utils;
 var PMProxiedXMLHttpRequest = PostMessageProxiedXHR.buildConstructor("../");
 
+test("utils.inArray() works", function() {
+  equal(utils.inArray("foo", ["bar", "foo", "baz"]), 1);
+  ok(utils.inArray("foo", ["bar", "baz"]), -1);
+});
+
 test("utils.encode() works", function() {
   deepEqual(utils.encode({a: 'foo', b: 'blarg'}), "a=foo&b=blarg");
   deepEqual(utils.encode({a: '', b: 'blarg'}), "a=&b=blarg");
