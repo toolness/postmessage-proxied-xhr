@@ -30,6 +30,11 @@ var PostMessageProxiedXHR = (function() {
     return data;
   }
 
+  function error(msg) {
+    if (window.console && window.console.error)
+      window.console.error(msg);
+  }
+  
   function SimpleChannel(other, targetOrigin, onMessage) {
     function getOtherWindow() {
       return ('contentWindow' in other) ? other.contentWindow : other;
@@ -50,8 +55,11 @@ var PostMessageProxiedXHR = (function() {
     function messageHandler(event) {
       if (event.source != getOtherWindow())
         return;
-      if (targetOrigin != "*" && event.origin != targetOrigin)
-        return;
+      if (targetOrigin != "*")
+        if (event.origin != targetOrigin) {
+          error("message from invalid origin: " + event.origin);
+          return;
+        }
       self.onMessage(decode(event.data));
     }
     
@@ -64,10 +72,7 @@ var PostMessageProxiedXHR = (function() {
       decode: decode,
       encode: encode,
       SimpleChannel: SimpleChannel,
-      error: function(msg) {
-        if (window.console && window.console.error)
-          window.console.error(msg);
-      },
+      error: error,
       // Taken from jQuery.
       inArray: function( elem, array, i ) {
     		var len;
