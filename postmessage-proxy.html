@@ -35,7 +35,6 @@ if (window.parent !== window) {
       };
       
       for (var name in headers) {
-        // TODO: If the header isn't allowed, should we bail?
         if (utils.inArray(name, Settings.allowHeaders) != -1)
           req.setRequestHeader(name, headers[name]);
         else {
