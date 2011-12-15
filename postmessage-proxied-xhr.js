@@ -35,6 +35,30 @@ var PostMessageProxiedXHR = (function() {
       window.console.error(msg);
   }
   
+  // Taken from jQuery.
+  function inArray( elem, array, i ) {
+		var len;
+    var indexOf = Array.prototype.indexOf;
+    
+		if ( array ) {
+			if ( indexOf ) {
+				return indexOf.call( array, elem, i );
+			}
+
+			len = array.length;
+			i = i ? i < 0 ? Math.max( 0, len + i ) : i : 0;
+
+			for ( ; i < len; i++ ) {
+				// Skip accessing in sparse arrays
+				if ( i in array && array[ i ] === elem ) {
+					return i;
+				}
+			}
+		}
+
+		return -1;
+	}
+	
   function SimpleChannel(other, targetOrigin, onMessage) {
     function getOtherWindow() {
       return ('contentWindow' in other) ? other.contentWindow : other;
@@ -73,34 +97,52 @@ var PostMessageProxiedXHR = (function() {
       encode: encode,
       SimpleChannel: SimpleChannel,
       error: error,
-      // Taken from jQuery.
-      inArray: function( elem, array, i ) {
-    		var len;
-        var indexOf = Array.prototype.indexOf;
-        
-    		if ( array ) {
-    			if ( indexOf ) {
-    				return indexOf.call( array, elem, i );
-    			}
-
-    			len = array.length;
-    			i = i ? i < 0 ? Math.max( 0, len + i ) : i : 0;
-
-    			for ( ; i < len; i++ ) {
-    				// Skip accessing in sparse arrays
-    				if ( i in array && array[ i ] === elem ) {
-    					return i;
-    				}
-    			}
-    		}
-
-    		return -1;
-    	}
+      inArray: inArray
     },
-    buildConstructor: function buildConstructor(baseURL) {
-      if (typeof(baseURL) == "undefined")
-        baseURL = "";
+    startServer: function startServer(settings) {
+      var origin = settings.allowOrigin;
+      var otherWindow = settings.window || window.parent;
+      var channel = SimpleChannel(otherWindow, origin, function(data) {
+        switch (data.cmd) {
+          case "send":
+          // TODO: Validate URL, ensure it's on our domain.
+          var req = new XMLHttpRequest();
+          var headers = decode(data.headers);
+          var isValidMethod = (inArray(data.method.toUpperCase(),
+                                       settings.allowMethods) != -1);
 
+          if (!isValidMethod) {
+            error("method '" + data.method + "' is not allowed");
+            return;
+          }
+
+          req.open(data.method, data.url);
+          req.onreadystatechange = function() {
+            channel.send({
+              cmd: "readystatechange",
+              readyState: req.readyState,
+              status: req.status,
+              statusText: req.statusText,
+              responseText: req.responseText
+            });
+          };
+
+          for (var name in headers) {
+            if (inArray(name, settings.allowHeaders) != -1)
+              req.setRequestHeader(name, headers[name]);
+            else {
+              error("header '" + name + "' is not allowed.");
+              return;
+            }
+          }
+
+          req.send(data.body || null);
+          break;
+        }
+      });
+      channel.send({cmd: "ready"});
+    },
+    buildClientConstructor: function buildClientConstructor(iframeURL) {
       return function PostMessageProxiedXMLHttpRequest() {
         var method;
         var url;
@@ -115,7 +157,6 @@ var PostMessageProxiedXHR = (function() {
             headers[name] = value;
           },
           send: function(body) {
-            var iframeURL = baseURL + "postmessage-proxy.html";
             var iframe = document.createElement("iframe");
             var channel = SimpleChannel(iframe, "*", function(data) {
               switch (data.cmd) {

@@ -14,7 +14,7 @@
 module("general");
 
 var utils = PostMessageProxiedXHR.utils;
-var PMProxiedXMLHttpRequest = PostMessageProxiedXHR.buildConstructor("../");
+var Request = PostMessageProxiedXHR.buildClientConstructor("server.html");
 
 test("utils.inArray() works", function() {
   equal(utils.inArray("foo", ["bar", "foo", "baz"]), 1);
@@ -36,8 +36,8 @@ test("utils.decode() works", function() {
 });
 
 test("Response '200 OK' works", function() {
-  var req = PMProxiedXMLHttpRequest();
-  req.open("get", "test/sample.txt");
+  var req = Request();
+  req.open("get", "sample.txt");
   req.onreadystatechange = function() {
     equal(typeof(req.responseText), 'string', 'responseText is a string');
     equal(typeof(req.statusText), 'string', 'statusText is a string');
@@ -54,7 +54,7 @@ test("Response '200 OK' works", function() {
 });
 
 test("Response '404 Not Found' works", function() {
-  var req = PMProxiedXMLHttpRequest();
+  var req = Request();
   req.open("get", "nonexistent.txt");
   req.onreadystatechange = function() {
     if (req.readyState == 4 && req.status == 404) {
