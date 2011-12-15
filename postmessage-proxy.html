@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <title>PostMessage Proxy</title>
-<script src="json2.js"></script>
-<script src="jschannel.js"></script>
-<p>hello.</p>
+<p>You should not see this text.</p>
+<script src="postmessage-proxied-xhr.js"></script>
 <script>
-onload = function() {
-  if (window.parent !== window) {
-    var channel = Channel.build({
-      window: window.parent,
-      origin: "*",
-      scope: "PostMessageProxiedXHR"
-    });
-    channel.bind("send", function(trans, options) {
+var SimpleChannel = PostMessageProxiedXHR.utils.SimpleChannel;
+
+if (window.parent !== window) {
+  var channel = SimpleChannel(window.parent, "*", function(data) {
+    switch (data.cmd) {
+      case "send":
+      // TODO: Validate arguments.
       var req = new XMLHttpRequest();
-      req.open(options.method, options.url);
-      req.onload = function() {
-        trans.complete({
+      req.open(data.method, data.url);
+      req.onreadystatechange = function() {
+        channel.send({
+          cmd: "readystatechange",
+          readyState: req.readyState,
+          status: req.status,
+          statusText: req.statusText,
           responseText: req.responseText
         });
       };
-      req.onerror = function() {
-        trans.error("error");
-      };
-      req.send(options.body);
-      trans.delayReturn(true);
-    });
-  }
-};
+      req.send(data.body || null);
+      break;
+    }
+  });
+  channel.send({cmd: "ready"});
+}
 </script>
