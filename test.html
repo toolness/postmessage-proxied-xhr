@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>PostMessageProxiedXHR Unit Tests</title>
+<link rel="stylesheet" href="qunit.css">
+<script src="qunit.js"></script>
+<script src="json2.js"></script>
+<script src="jschannel.js"></script>
+<script src="postmessage-proxied-xhr.js"></script>
+<h1 id="qunit-header">PostMessageProxiedXHR Unit Tests</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture"></div>
+<script>
+module("general");
+
+test("onload-works", function() {
+  var proxy = new PostMessageProxiedXHR();
+  proxy.open("get", "sample.txt");
+  proxy.onload = function() {
+    equal(proxy.responseText, "hello there, I am sample text.");
+    start();
+  };
+  proxy.send(null);
+  stop();
+});
+
+test("onerror-works", function() {
+  var proxy = new XMLHttpRequest();
+  proxy.open("get", "nonexistent.txt");
+  proxy.onload = function() {
+    console.log(proxy.status);
+  };
+  proxy.onerror = function() {
+    start();
+  };
+  proxy.send(null);
+  stop();
+});
+</script>
