@@ -1,4 +1,10 @@
 var PostMessageProxiedXHR = (function() {
+  function absolutifyURL(url) {
+    var a = document.createElement('a');
+    a.setAttribute("href", url);
+    return a.href;
+  }
+  
   function on(element, event, cb) {
     if (element.attachEvent)
       element.attachEvent("on" + event, cb);
@@ -98,13 +104,20 @@ var PostMessageProxiedXHR = (function() {
     on(window, "message", messageHandler);
     return self;
   }
-  
+
+  var alwaysAllowHeaders = [
+    "Accept",
+    /* Harmless header jQuery might add. */
+    "X-Requested-With"
+  ];
+
   return {
     utils: {
       decode: decode,
       encode: encode,
       inArray: inArray
     },
+    alwaysAllowHeaders: alwaysAllowHeaders,
     startServer: function startServer(settings) {
       var origin = settings.allowOrigin;
       var otherWindow = settings.window || window.parent;
@@ -135,7 +148,8 @@ var PostMessageProxiedXHR = (function() {
           };
 
           for (var name in headers) {
-            if (inArray(name, settings.allowHeaders) != -1)
+            if (inArray(name, settings.allowHeaders) != -1 ||
+                inArray(name, alwaysAllowHeaders) != -1)
               req.setRequestHeader(name, headers[name]);
             else {
               channel.error("header '" + name + "' is not allowed.");
@@ -184,7 +198,7 @@ var PostMessageProxiedXHR = (function() {
                 channel.send({
                   cmd: "send",
                   method: method,
-                  url: url,
+                  url: absolutifyURL(url),
                   headers: encode(headers),
                   body: body || ""
                 });
@@ -207,6 +221,8 @@ var PostMessageProxiedXHR = (function() {
                 break;
               }
             }, function onError(message) {
+              if (window.console && window.console.warn)
+                window.console.warn(message);
               self.statusText = message;
               channel.destroy();
               document.body.removeChild(iframe);
@@ -216,7 +232,7 @@ var PostMessageProxiedXHR = (function() {
                 self.onreadystatechange();
             });
 
-            iframe.setAttribute("src", iframeURL);
+            iframe.setAttribute("src", absolutifyURL(iframeURL));
             iframe.style.display = "none";
             document.body.appendChild(iframe);
           }
