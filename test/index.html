@@ -35,6 +35,29 @@ test("utils.decode() works", function() {
             "Ensure '&' is decoded properly");
 });
 
+test("Method not allowed error works", function() {
+  var req = Request();
+  req.open("put", "sample.txt");
+  req.onreadystatechange = function() {
+    equal(req.statusText, "method 'put' is not allowed.");
+    start();
+  };
+  req.send(null);
+  stop();
+});
+
+test("Header not allowed error works", function() {
+  var req = Request();
+  req.open("get", "sample.txt");
+  req.setRequestHeader('X-blarg', 'hi');
+  req.onreadystatechange = function() {
+    equal(req.statusText, "header 'X-blarg' is not allowed.");
+    start();
+  };
+  req.send(null);
+  stop();
+});
+
 test("Response '200 OK' works", function() {
   var req = Request();
   req.open("get", "sample.txt");

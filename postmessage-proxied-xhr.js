@@ -29,11 +29,6 @@ var PostMessageProxiedXHR = (function() {
     });
     return data;
   }
-
-  function error(msg) {
-    if (window.console && window.console.error)
-      window.console.error(msg);
-  }
   
   // Taken from jQuery.
   function inArray( elem, array, i ) {
@@ -59,13 +54,17 @@ var PostMessageProxiedXHR = (function() {
 		return -1;
 	}
 	
-  function SimpleChannel(other, targetOrigin, onMessage) {
+  function SimpleChannel(other, targetOrigin, onMessage, onError) {
     function getOtherWindow() {
       return ('contentWindow' in other) ? other.contentWindow : other;
     }
     
     var self = {
       onMessage: onMessage,
+      onError: onError || function defaultOnError(message) {
+        if (window.console && window.console.error)
+          window.console.error(message);
+      },
       destroy: function() {
         off(window, "message", messageHandler);
         other = null;
@@ -73,6 +72,11 @@ var PostMessageProxiedXHR = (function() {
       },
       send: function(data) {
         getOtherWindow().postMessage(encode(data), targetOrigin);
+      },
+      error: function(message) {
+        getOtherWindow().postMessage(encode({
+          __simpleChannelError: message
+        }), targetOrigin);
       }
     };
 
@@ -81,10 +85,14 @@ var PostMessageProxiedXHR = (function() {
         return;
       if (targetOrigin != "*")
         if (event.origin != targetOrigin) {
-          error("message from invalid origin: " + event.origin);
+          self.error("message from invalid origin: " + event.origin);
           return;
         }
-      self.onMessage(decode(event.data));
+      var data = decode(event.data);
+      if ('__simpleChannelError' in data)
+        self.onError(data.__simpleChannelError);
+      else
+        self.onMessage(data);
     }
     
     on(window, "message", messageHandler);
@@ -95,8 +103,6 @@ var PostMessageProxiedXHR = (function() {
     utils: {
       decode: decode,
       encode: encode,
-      SimpleChannel: SimpleChannel,
-      error: error,
       inArray: inArray
     },
     startServer: function startServer(settings) {
@@ -112,7 +118,7 @@ var PostMessageProxiedXHR = (function() {
                                        settings.allowMethods) != -1);
 
           if (!isValidMethod) {
-            error("method '" + data.method + "' is not allowed");
+            channel.error("method '" + data.method + "' is not allowed.");
             return;
           }
 
@@ -131,7 +137,7 @@ var PostMessageProxiedXHR = (function() {
             if (inArray(name, settings.allowHeaders) != -1)
               req.setRequestHeader(name, headers[name]);
             else {
-              error("header '" + name + "' is not allowed.");
+              channel.error("header '" + name + "' is not allowed.");
               return;
             }
           }
@@ -149,6 +155,10 @@ var PostMessageProxiedXHR = (function() {
         var headers = {};
         
         var self = {
+          readyState: 0,
+          status: 0,
+          statusText: "",
+          responseText: "",
           open: function(aMethod, aUrl) {
             method = aMethod;
             url = aUrl;
@@ -185,6 +195,14 @@ var PostMessageProxiedXHR = (function() {
                   self.onreadystatechange();
                 break;
               }
+            }, function onError(message) {
+              self.statusText = message;
+              channel.destroy();
+              document.body.removeChild(iframe);
+              channel = null;
+              iframe = null;
+              if (self.onreadystatechange)
+                self.onreadystatechange();
             });
 
             iframe.setAttribute("src", iframeURL);
