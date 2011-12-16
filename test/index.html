@@ -36,6 +36,13 @@ test("utils.decode() works", function() {
             "Ensure '&' is decoded properly");
 });
 
+test("utils.isSameOrigin() works", function() {
+  ok(utils.isSameOrigin("http://foo.com/bar", "http://foo.com/baz"));
+  ok(!utils.isSameOrigin("http://foo.com/bar", "https://foo.com/baz"));  
+  ok(!utils.isSameOrigin("http://a.com/", "http://b.com/"));  
+  ok(!utils.isSameOrigin("http://a.com:8000/", "http://a.com/"));  
+});
+
 module("request");
 
 var Request = PostMessageProxiedXHR.buildClientConstructor("server.html");
@@ -45,6 +52,17 @@ test("method not allowed error works", function() {
   req.open("put", "sample.txt");
   req.onreadystatechange = function() {
     equal(req.statusText, "method 'put' is not allowed.");
+    start();
+  };
+  req.send(null);
+  stop();
+});
+
+test("same origin violation error works", function() {
+  var req = Request();
+  req.open("get", "http://example.com/foo");
+  req.onreadystatechange = function() {
+    equal(req.statusText, "url does not have same origin: http://example.com/foo");
     start();
   };
   req.send(null);

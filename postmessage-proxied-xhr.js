@@ -28,14 +28,48 @@ var PostMessageProxiedXHR = (function() {
   }
   
   function decode(string) {
-    var data = {};
-    var re = new RegExp("([^?=&]+)(=([^&]*))?", "g");
-    string.replace(re, function($0, $1, $2, $3) {
-      data[$1] = decodeURIComponent($3);
-    });
-    return data;
+    return parseUri("?" + string).queryKey;
+  }
+
+  function isSameOrigin(a, b) {
+    a = parseUri(a);
+    b = parseUri(b);
+    return (a.protocol == b.protocol && a.authority == b.authority);
   }
   
+  // parseUri 1.2.2
+  // (c) Steven Levithan <stevenlevithan.com>
+  // MIT License
+
+  function parseUri(str) {
+    var	o = parseUri.options,
+        m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+        uri = {},
+        i = 14;
+
+    while (i--) uri[o.key[i]] = m[i] || "";
+
+    uri[o.q.name] = {};
+    uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+      if ($1) uri[o.q.name][$1] = decodeURIComponent($2);
+    });
+
+    return uri;
+  };
+
+  parseUri.options = {
+    strictMode: false,
+    key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+    q: {
+      name:   "queryKey",
+      parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+    },
+    parser: {
+      strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+      loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+    }
+  };
+
   // Taken from jQuery.
   function inArray(elem, array, i) {
     var len;
@@ -115,7 +149,8 @@ var PostMessageProxiedXHR = (function() {
     utils: {
       decode: decode,
       encode: encode,
-      inArray: inArray
+      inArray: inArray,
+      isSameOrigin: isSameOrigin
     },
     alwaysAllowHeaders: alwaysAllowHeaders,
     startServer: function startServer(settings) {
@@ -124,7 +159,6 @@ var PostMessageProxiedXHR = (function() {
       var channel = SimpleChannel(otherWindow, origin, function(data) {
         switch (data.cmd) {
           case "send":
-          // TODO: Validate URL, ensure it's on our domain.
           var req = new XMLHttpRequest();
           var headers = decode(data.headers);
           var isValidMethod = (inArray(data.method.toUpperCase(),
@@ -132,6 +166,11 @@ var PostMessageProxiedXHR = (function() {
 
           if (!isValidMethod) {
             channel.error("method '" + data.method + "' is not allowed.");
+            return;
+          }
+
+          if (!isSameOrigin(window.location.href, data.url)) {
+            channel.error("url does not have same origin: " + data.url);
             return;
           }
 
