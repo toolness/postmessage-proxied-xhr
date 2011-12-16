@@ -1,4 +1,4 @@
-This is a simple [Polyfill][] that allows browsers without support for cross-origin XMLHttpRequests to do so via `postMessage`.
+This is a simple [polyfill][] that allows browsers without support for cross-origin XMLHttpRequests to do so via `postMessage`.
 
 The code has no dependencies and does not require JSON. A simple jQuery plugin that allows jQuery-based ajax requests to transparently use the polyfill is also available.
 
