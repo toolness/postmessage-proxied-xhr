@@ -13,10 +13,9 @@
 <ol id="qunit-tests"></ol>
 <div id="qunit-fixture"></div>
 <script>
-module("general");
+module("utils");
 
 var utils = PostMessageProxiedXHR.utils;
-var Request = PostMessageProxiedXHR.buildClientConstructor("server.html");
 
 test("utils.inArray() works", function() {
   equal(utils.inArray("foo", ["bar", "foo", "baz"]), 1);
@@ -37,7 +36,11 @@ test("utils.decode() works", function() {
             "Ensure '&' is decoded properly");
 });
 
-test("Method not allowed error works", function() {
+module("request");
+
+var Request = PostMessageProxiedXHR.buildClientConstructor("server.html");
+
+test("method not allowed error works", function() {
   var req = Request();
   req.open("put", "sample.txt");
   req.onreadystatechange = function() {
@@ -48,7 +51,7 @@ test("Method not allowed error works", function() {
   stop();
 });
 
-test("Header not allowed error works", function() {
+test("header not allowed error works", function() {
   var req = Request();
   req.open("get", "sample.txt");
   req.setRequestHeader('X-blarg', 'hi');
@@ -60,7 +63,7 @@ test("Header not allowed error works", function() {
   stop();
 });
 
-test("Response '200 OK' works", function() {
+test("response '200 OK' works", function() {
   function checkTypes() {
     equal(typeof(req.responseText), 'string', 'responseText is a string');
     equal(typeof(req.statusText), 'string', 'statusText is a string');
@@ -89,7 +92,7 @@ test("Response '200 OK' works", function() {
   stop();
 });
 
-test("Response '404 Not Found' works", function() {
+test("response '404 Not Found' works", function() {
   var req = Request();
   req.open("get", "nonexistent.txt");
   req.onreadystatechange = function() {
