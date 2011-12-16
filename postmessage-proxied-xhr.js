@@ -129,7 +129,8 @@ var PostMessageProxiedXHR = (function() {
               readyState: req.readyState,
               status: req.status,
               statusText: req.statusText,
-              responseText: req.responseText
+              responseText: req.responseText,
+              responseHeaders: req.getAllResponseHeaders()
             });
           };
 
@@ -153,8 +154,14 @@ var PostMessageProxiedXHR = (function() {
         var method;
         var url;
         var headers = {};
+        var responseHeaders = "";
         
         var self = {
+          UNSENT: 0,
+          OPENED: 1,
+          HEADERS_RECEIVED: 2,
+          LOADING: 3,
+          DONE: 4,
           readyState: 0,
           status: 0,
           statusText: "",
@@ -165,6 +172,9 @@ var PostMessageProxiedXHR = (function() {
           },
           setRequestHeader: function(name, value) {
             headers[name] = value;
+          },
+          getAllResponseHeaders: function() {
+            return responseHeaders;
           },
           send: function(body) {
             var iframe = document.createElement("iframe");
@@ -185,6 +195,7 @@ var PostMessageProxiedXHR = (function() {
                 self.status = parseInt(data.status);
                 self.statusText = data.statusText;
                 self.responseText = data.responseText;
+                responseHeaders = data.responseHeaders;
                 if (self.readyState == 4) {
                   channel.destroy();
                   document.body.removeChild(iframe);

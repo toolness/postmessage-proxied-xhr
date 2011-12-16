@@ -59,19 +59,30 @@ test("Header not allowed error works", function() {
 });
 
 test("Response '200 OK' works", function() {
-  var req = Request();
-  req.open("get", "sample.txt");
-  req.onreadystatechange = function() {
+  function checkTypes() {
     equal(typeof(req.responseText), 'string', 'responseText is a string');
     equal(typeof(req.statusText), 'string', 'statusText is a string');
     equal(typeof(req.status), 'number', 'status is a number');
     equal(typeof(req.readyState), 'number', 'readyState is a number');
+    if (req.readyState >= req.HEADERS_RECEIVED)
+      ok(req.getAllResponseHeaders().length,
+         'getAllResponseHeaders() returns a non-empty string');
+    else
+      equal(typeof(req.getAllResponseHeaders()), 'string',
+            'getAllResponseHeaders() returns a string');
+  }
+  
+  var req = Request();
+  req.open("get", "sample.txt");
+  req.onreadystatechange = function() {
+    checkTypes();
     if (req.readyState == 4 && req.status == 200) {
       equal(req.responseText, "hello there, I am sample text.",
             "responseText is as expected.");
       start();
     }
   };
+  checkTypes();
   req.send(null);
   stop();
 });
