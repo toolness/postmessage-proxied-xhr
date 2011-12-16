@@ -3,7 +3,9 @@
 <title>PostMessageProxiedXHR Unit Tests</title>
 <link rel="stylesheet" href="qunit.css">
 <script src="qunit.js"></script>
+<script src="jquery.min.js"></script>
 <script src="../postmessage-proxied-xhr.js"></script>
+<script src="../postmessage-proxied-xhr.jquery.js"></script>
 <h1 id="qunit-header">PostMessageProxiedXHR Unit Tests</h1>
 <h2 id="qunit-banner"></h2>
 <div id="qunit-testrunner-toolbar"></div>
@@ -97,6 +99,34 @@ test("Response '404 Not Found' works", function() {
     }
   };
   req.send(null);
+  stop();
+});
+
+module("jquery-plugin");
+
+jQuery.proxyAjaxThroughPostMessage("server.html");
+
+test("success works", function() {
+  jQuery.ajax({
+    url: "sample.txt",
+    usePostMessage: true,
+    success: function(data) {
+      equal(data, "hello there, I am sample text.");
+      start();
+    }
+  });
+  stop();
+});
+
+test("error works", function() {
+  jQuery.ajax({
+    url: "nonexistent.txt",
+    usePostMessage: true,
+    error: function(req) {
+      equal(req.status, 404);
+      start();
+    }
+  });
   stop();
 });
 </script>
