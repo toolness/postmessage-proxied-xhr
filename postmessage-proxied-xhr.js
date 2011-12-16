@@ -37,28 +37,28 @@ var PostMessageProxiedXHR = (function() {
   }
   
   // Taken from jQuery.
-  function inArray( elem, array, i ) {
-		var len;
+  function inArray(elem, array, i) {
+    var len;
     var indexOf = Array.prototype.indexOf;
-    
-		if ( array ) {
-			if ( indexOf ) {
-				return indexOf.call( array, elem, i );
-			}
 
-			len = array.length;
-			i = i ? i < 0 ? Math.max( 0, len + i ) : i : 0;
+    if (array) {
+      if (indexOf) {
+        return indexOf.call(array, elem, i);
+      }
 
-			for ( ; i < len; i++ ) {
-				// Skip accessing in sparse arrays
-				if ( i in array && array[ i ] === elem ) {
-					return i;
-				}
-			}
-		}
+      len = array.length;
+      i = i ? i < 0 ? Math.max(0, len + i) : i : 0;
 
-		return -1;
-	}
+      for (;i < len; i++) {
+        // Skip accessing in sparse arrays
+        if (i in array && array[i] === elem) {
+          return i;
+        }
+      }
+    }
+
+    return -1;
+  }
 	
   function SimpleChannel(other, targetOrigin, onMessage, onError) {
     function getOtherWindow() {
