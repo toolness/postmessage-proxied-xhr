@@ -67,21 +67,32 @@ class BasicFileServer(object):
         return self.try_loading(filename, env, start)
 
 def cors_handler(env, start):
-    def response(contents):
-        headers = [
+    def response(contents, origin=None, methods=None, headers=None):
+        final_headers = [
             ('Content-Type', 'text/plain'),
             ('Content-Length', str(len(contents)))
         ]
-        if 'HTTP_ORIGIN' in env:
-            headers.extend([
-                ('Access-Control-Allow-Origin', env['HTTP_ORIGIN']),
-                ('Access-Control-Allow-Methods', 'GET, OPTIONS')
-                ])
-        start('200 OK', headers)
+        if origin:
+            final_headers.append(('Access-Control-Allow-Origin', origin))
+        if methods:
+            final_headers.append(('Access-Control-Allow-Methods', methods))
+        if headers:
+            final_headers.append(('Access-Control-Allow-Headers', headers))            
+        print "YAY " + repr(final_headers)
+        start('200 OK', final_headers)
         return [contents]
 
-    if env['PATH_INFO'] == '/cors/sample.txt':
-        return response('hello there, I am sample text.')
+    if env['PATH_INFO'] == '/cors/origin-only-me':
+        return response('hai2u', origin=env.get('HTTP_ORIGIN'),
+                        methods='GET')
+
+    if env['PATH_INFO'] == '/cors/origin-all':
+        return response('hai2u', origin='*',
+                        methods='GET')
+
+    if env['PATH_INFO'] == '/cors/origin-foo.com':
+        return response('hai2u', origin='http://foo.com',
+                        methods='GET')
 
     return None
 
