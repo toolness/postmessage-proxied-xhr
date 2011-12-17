@@ -286,7 +286,8 @@ var PostMessageProxiedXHR = (function() {
             }, function onError(message) {
               if (window.console && window.console.warn)
                 window.console.warn(message);
-              self.statusText = message;
+              self.responseText = message;
+              self.readyState = self.DONE;
               cleanup();
               if (self.onreadystatechange)
                 self.onreadystatechange();

@@ -58,7 +58,8 @@ test("method not allowed error works", function() {
   var req = Request();
   req.open("put", "sample.txt");
   req.onreadystatechange = function() {
-    equal(req.statusText, "method 'put' is not allowed.");
+    equal(req.readyState, req.DONE);
+    equal(req.responseText, "method 'put' is not allowed.");
     start();
   };
   req.send(null);
@@ -69,7 +70,8 @@ test("same origin violation error works", function() {
   var req = Request();
   req.open("get", "http://example.com/foo");
   req.onreadystatechange = function() {
-    equal(req.statusText, "url does not have same origin: http://example.com/foo");
+    equal(req.readyState, req.DONE);
+    equal(req.responseText, "url does not have same origin: http://example.com/foo");
     start();
   };
   req.send(null);
@@ -81,7 +83,8 @@ test("header not allowed error works", function() {
   req.open("get", "sample.txt");
   req.setRequestHeader('X-blarg', 'hi');
   req.onreadystatechange = function() {
-    equal(req.statusText, "header 'X-blarg' is not allowed.");
+    equal(req.readyState, req.DONE);
+    equal(req.responseText, "header 'X-blarg' is not allowed.");
     start();
   };
   req.send(null);
