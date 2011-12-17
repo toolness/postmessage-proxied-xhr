@@ -150,7 +150,8 @@ var PostMessageProxiedXHR = (function() {
       decode: decode,
       encode: encode,
       inArray: inArray,
-      isSameOrigin: isSameOrigin
+      isSameOrigin: isSameOrigin,
+      absolutifyURL: absolutifyURL
     },
     alwaysAllowHeaders: alwaysAllowHeaders,
     startServer: function startServer(settings) {
