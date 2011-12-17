@@ -36,6 +36,35 @@ var PPX = (function() {
     b = parseUri(b);
     return (a.protocol == b.protocol && a.authority == b.authority);
   }
+
+  function validateRequest(data, settings, channel) {
+    var isValidMethod = (inArray(data.method.toUpperCase(),
+                                 settings.allowMethods) != -1);
+
+    if (!isValidMethod) {
+      channel.error("method '" + data.method + "' is not allowed.");
+      return false;
+    }
+
+    if (settings.allowOrigin != "*" && data.origin != settings.allowOrigin) {
+      channel.error("message from invalid origin: " + data.origin);
+      return;
+    }
+
+    if (!isSameOrigin(window.location.href, data.url)) {
+      channel.error("url does not have same origin: " + data.url);
+      return false;
+    }
+    
+    for (var name in data.headers)
+      if (inArray(name, settings.allowHeaders) == -1 &&
+          inArray(name, alwaysAllowHeaders) == -1) {
+        channel.error("header '" + name + "' is not allowed.");
+        return false;
+      }
+    
+    return true;
+  }
   
   // parseUri 1.2.2
   // (c) Steven Levithan <stevenlevithan.com>
@@ -94,7 +123,7 @@ var PPX = (function() {
     return -1;
   }
 	
-  function SimpleChannel(other, targetOrigin, onMessage, onError) {
+  function SimpleChannel(other, onMessage, onError) {
     function getOtherWindow() {
       try {  // Opera barfs here.
         return ('contentWindow' in other) ? other.contentWindow : other;
@@ -113,28 +142,23 @@ var PPX = (function() {
         onMessage = null;
       },
       send: function(data) {
-        getOtherWindow().postMessage(encode(data), targetOrigin);
+        getOtherWindow().postMessage(encode(data), "*");
       },
       error: function(message) {
         getOtherWindow().postMessage(encode({
           __simpleChannelError: message
-        }), targetOrigin);
+        }), "*");
       }
     };
 
     function messageHandler(event) {
       if (event.source != getOtherWindow())
         return;
-      if (targetOrigin != "*")
-        if (event.origin != targetOrigin) {
-          self.error("message from invalid origin: " + event.origin);
-          return;
-        }
       var data = decode(event.data);
       if ('__simpleChannelError' in data)
-        self.onError(data.__simpleChannelError);
+        self.onError(data.__simpleChannelError, event.origin);
       else
-        self.onMessage(data);
+        self.onMessage(data, event.origin);
     }
     
     on(window, "message", messageHandler);
@@ -158,25 +182,15 @@ var PPX = (function() {
     },
     alwaysAllowHeaders: alwaysAllowHeaders,
     startServer: function startServer(settings) {
-      var origin = settings.allowOrigin;
       var otherWindow = settings.window || window.parent;
-      var channel = SimpleChannel(otherWindow, origin, function(data) {
-        switch (data.cmd) {
-          case "send":
+      var channel = SimpleChannel(otherWindow, function(data, origin) {
+        if (data.cmd == "send") {
           var req = new XMLHttpRequest();
-          var headers = decode(data.headers);
-          var isValidMethod = (inArray(data.method.toUpperCase(),
-                                       settings.allowMethods) != -1);
 
-          if (!isValidMethod) {
-            channel.error("method '" + data.method + "' is not allowed.");
+          data.origin = origin;
+          data.headers = decode(data.headers);
+          if (!validateRequest(data, settings, channel))
             return;
-          }
-
-          if (!isSameOrigin(window.location.href, data.url)) {
-            channel.error("url does not have same origin: " + data.url);
-            return;
-          }
 
           req.open(data.method, data.url);
           req.onreadystatechange = function() {
@@ -190,18 +204,10 @@ var PPX = (function() {
             });
           };
 
-          for (var name in headers) {
-            if (inArray(name, settings.allowHeaders) != -1 ||
-                inArray(name, alwaysAllowHeaders) != -1)
-              req.setRequestHeader(name, headers[name]);
-            else {
-              channel.error("header '" + name + "' is not allowed.");
-              return;
-            }
-          }
+          for (var name in data.headers)
+            req.setRequestHeader(name, data.headers[name]);
 
           req.send(data.body || null);
-          break;
         }
       });
       channel.send({cmd: "ready"});
@@ -263,7 +269,7 @@ var PPX = (function() {
               throw new Error("request not initialized");
 
             iframe = document.createElement("iframe");
-            channel = SimpleChannel(iframe, "*", function(data) {
+            channel = SimpleChannel(iframe, function(data) {
               switch (data.cmd) {
                 case "ready":
                 channel.send({
