@@ -1,4 +1,4 @@
-var PostMessageProxiedXHR = (function() {
+var PPX = (function() {
   function absolutifyURL(url) {
     var a = document.createElement('a');
     a.setAttribute("href", url);

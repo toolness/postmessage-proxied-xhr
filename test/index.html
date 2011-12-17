@@ -15,7 +15,7 @@
 <script>
 module("utils");
 
-var utils = PostMessageProxiedXHR.utils;
+var utils = PPX.utils;
 
 test("utils.inArray() works", function() {
   equal(utils.inArray("foo", ["bar", "foo", "baz"]), 1);
@@ -45,7 +45,7 @@ test("utils.isSameOrigin() works", function() {
 
 module("request");
 
-var Request = PostMessageProxiedXHR.buildClientConstructor("server.html");
+var Request = PPX.buildClientConstructor("server.html");
 
 test("exception raised if send() called before open()", function() {
   raises(function() {
