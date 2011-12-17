@@ -143,6 +143,7 @@ var PPX = (function() {
 
   var alwaysAllowHeaders = [
     "Accept",
+    "Content-Type",
     /* Harmless header jQuery might add. */
     "X-Requested-With"
   ];
