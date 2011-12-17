@@ -6,6 +6,8 @@
     // these tests.
     return;
 
+  module("real-cors");
+  
   var corsURL = loc.protocol + "//" + loc.hostname + ":" +
                 (parseInt(loc.port) + 1);
 
