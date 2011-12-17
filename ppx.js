@@ -96,7 +96,9 @@ var PPX = (function() {
 	
   function SimpleChannel(other, targetOrigin, onMessage, onError) {
     function getOtherWindow() {
-      return ('contentWindow' in other) ? other.contentWindow : other;
+      try {  // Opera barfs here.
+        return ('contentWindow' in other) ? other.contentWindow : other;
+      } catch (e) { return other; }
     }
     
     var self = {
