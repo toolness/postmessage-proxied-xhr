@@ -43,6 +43,15 @@
   });
 
   corsTest({
+    path: "/cors/origin-all/post",
+    method: 'POST',
+    body: 'supdog',
+    test: function(req) {
+      equal(req.responseText, "received supdog");
+    }
+  });
+
+  corsTest({
     name: "method unsupported by CORS fails",
     method: "OPTIONS",
     path: "/cors/origin-all",

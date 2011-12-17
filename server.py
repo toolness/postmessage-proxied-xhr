@@ -90,6 +90,14 @@ def cors_handler(env, start):
         return response('hai2u', origin='*',
                         methods='GET')
 
+    if env['PATH_INFO'] == '/cors/origin-all/post':
+        length = env.get('CONTENT_LENGTH', '')
+        data = 'nothing'
+        if length:
+            data = env['wsgi.input'].read(int(length))
+        return response('received ' + data, origin='*',
+                        methods='POST')
+
     if env['PATH_INFO'] == '/cors/origin-foo.com':
         return response('hai2u', origin='http://foo.com',
                         methods='GET')
