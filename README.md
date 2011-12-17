@@ -8,7 +8,6 @@ Currently, the following features of the XHR API are unsupported:
 
 * username and password arguments to `open()`
 * `getResponseHeader()` (though `getAllResponseHeaders()` is supported)
-* `abort()`
 * `responseXML`
 
 ## Similar Projects

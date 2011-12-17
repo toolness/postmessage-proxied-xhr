@@ -206,8 +206,21 @@ var PostMessageProxiedXHR = (function() {
       return function PostMessageProxiedXMLHttpRequest() {
         var method;
         var url;
+        var channel;
+        var iframe;
         var headers = {};
         var responseHeaders = "";
+        
+        function cleanup() {
+          if (channel) {
+            channel.destroy();
+            channel = null;
+          }
+          if (iframe) {
+            document.body.removeChild(iframe);
+            iframe = null;
+          }
+        }
         
         var self = {
           UNSENT: 0,
@@ -222,6 +235,9 @@ var PostMessageProxiedXHR = (function() {
           open: function(aMethod, aUrl) {
             method = aMethod;
             url = aUrl;
+            self.readyState = self.OPENED;
+            if (self.onreadystatechange)
+              self.onreadystatechange();
           },
           setRequestHeader: function(name, value) {
             headers[name] = value;
@@ -229,9 +245,21 @@ var PostMessageProxiedXHR = (function() {
           getAllResponseHeaders: function() {
             return responseHeaders;
           },
+          abort: function() {
+            if (iframe) {
+              cleanup();
+              self.readyState = self.DONE;
+              if (self.onreadystatechange)
+                self.onreadystatechange();
+              self.readyState = self.UNSENT;
+            }
+          },
           send: function(body) {
-            var iframe = document.createElement("iframe");
-            var channel = SimpleChannel(iframe, "*", function(data) {
+            if (self.readyState == self.UNSENT)
+              throw new Error("request not initialized");
+
+            iframe = document.createElement("iframe");
+            channel = SimpleChannel(iframe, "*", function(data) {
               switch (data.cmd) {
                 case "ready":
                 channel.send({
@@ -249,12 +277,8 @@ var PostMessageProxiedXHR = (function() {
                 self.statusText = data.statusText;
                 self.responseText = data.responseText;
                 responseHeaders = data.responseHeaders;
-                if (self.readyState == 4) {
-                  channel.destroy();
-                  document.body.removeChild(iframe);
-                  channel = null;
-                  iframe = null;
-                }
+                if (self.readyState == 4)
+                  cleanup();
                 if (self.onreadystatechange)
                   self.onreadystatechange();
                 break;
@@ -263,10 +287,7 @@ var PostMessageProxiedXHR = (function() {
               if (window.console && window.console.warn)
                 window.console.warn(message);
               self.statusText = message;
-              channel.destroy();
-              document.body.removeChild(iframe);
-              channel = null;
-              iframe = null;
+              cleanup();
               if (self.onreadystatechange)
                 self.onreadystatechange();
             });

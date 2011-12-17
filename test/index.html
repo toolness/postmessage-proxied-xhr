@@ -47,6 +47,13 @@ module("request");
 
 var Request = PostMessageProxiedXHR.buildClientConstructor("server.html");
 
+test("exception raised if send() called before open()", function() {
+  raises(function() {
+    var req = Request();
+    req.send(null);
+  }, new RegExp("request not initialized"));
+});
+
 test("method not allowed error works", function() {
   var req = Request();
   req.open("put", "sample.txt");
@@ -79,6 +86,21 @@ test("header not allowed error works", function() {
   };
   req.send(null);
   stop();
+});
+
+test("abort() works", function() {
+  var req = Request();
+  var readyStates = [];
+  req.open("get", "sample.txt");
+  equal(req.readyState, 1);
+  req.send(null);
+  req.onreadystatechange = function() {
+    readyStates.push(req.readyState);
+  };
+  equal(req.readyState, 1);
+  req.abort();
+  equal(req.readyState, 0);
+  deepEqual(readyStates, [4]);
 });
 
 test("response '200 OK' works", function() {
