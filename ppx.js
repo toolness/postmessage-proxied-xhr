@@ -218,7 +218,7 @@ var PPX = (function() {
 
           req.open(data.method, data.url);
           req.onreadystatechange = function() {
-            if (req.readyState >= 2) {
+            if (req.readyState == 2) {
               var accessControl = parseAccessControlHeaders(req);
               if (settings.modifyAccessControl)
                 settings.modifyAccessControl(accessControl, data);
