@@ -14,7 +14,7 @@
     req.send(null);
     stop();
   });
-  
+
   test("exception raised if send() called before open()", function() {
     raises(function() {
       var req = Request();

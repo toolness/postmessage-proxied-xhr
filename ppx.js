@@ -7,6 +7,11 @@ var PPX = (function() {
     requestMethods: [
       "GET",
       "POST"
+    ],
+    requestContentTypes: [
+      "application/x-www-form-urlencoded",
+      "multipart/form-data",
+      "text/plain"
     ]
   };
   
@@ -213,6 +218,14 @@ var PPX = (function() {
               responseHeaders: req.getAllResponseHeaders()
             });
           };
+
+          var contentType = data.headers['Content-Type'];
+          if (contentType &&
+              utils.inArray(contentType, config.requestContentTypes) == -1) {
+            channel.error("invalid content type for a simple request: " +
+                          contentType);
+            return;
+          }
 
           for (var name in data.headers)
             if (utils.inArray(name, config.requestHeaders) == -1) {

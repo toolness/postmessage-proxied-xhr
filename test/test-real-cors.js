@@ -64,6 +64,17 @@
     }
   });
 
+  corsTest({
+    name: "POST with a non-simple content-type fails",
+    path: "/cors/origin-all/post",
+    method: 'POST',
+    body: 'supdog',
+    headers: {'Content-Type': 'super/crazy'},
+    test: function(req) {
+      expectCORSError(req, "invalid content type for a simple request: super/crazy");
+    }
+  });
+
   function expectCORSError(req, message) {
     if (req instanceof XMLHttpRequest)
       equal(req.responseText, "");
