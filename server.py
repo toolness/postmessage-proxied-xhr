@@ -78,13 +78,13 @@ def cors_handler(env, start):
             final_headers.append(('Access-Control-Allow-Methods', methods))
         if headers:
             final_headers.append(('Access-Control-Allow-Headers', headers))            
-        print "YAY " + repr(final_headers)
         start('200 OK', final_headers)
         return [contents]
 
     if env['PATH_INFO'] == '/cors/origin-only-me':
-        return response('hai2u', origin=env.get('HTTP_ORIGIN'),
-                        methods='GET')
+        origin = (env.get('HTTP_ORIGIN') or
+                  env.get('HTTP_X_ORIGINAL_ORIGIN'))
+        return response('hai2u', origin=origin, methods='GET')
 
     if env['PATH_INFO'] == '/cors/origin-all':
         return response('hai2u', origin='*',

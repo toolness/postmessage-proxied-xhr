@@ -1,4 +1,16 @@
 var PPX = (function() {
+  function extend(obj, props) {
+    if (props)
+      for (var name in props)
+        obj[name] = props[name];
+    return obj;
+  }
+  
+  function warn(msg) {
+    if (window.console && window.console.warn)
+      window.console.warn(msg);
+  }
+  
   function absolutifyURL(url) {
     var a = document.createElement('a');
     a.setAttribute("href", url);
@@ -41,6 +53,11 @@ var PPX = (function() {
     var isValidMethod = (inArray(data.method.toUpperCase(),
                                  settings.allowMethods) != -1);
 
+    if (!settings.allowOrigin) {
+      channel.error("CORS is unsupported at that path.");
+      return false;
+    }
+    
     if (!isValidMethod) {
       channel.error("method '" + data.method + "' is not allowed.");
       return false;
@@ -50,20 +67,34 @@ var PPX = (function() {
       channel.error("message from invalid origin: " + data.origin);
       return;
     }
-
-    if (!isSameOrigin(window.location.href, data.url)) {
-      channel.error("url does not have same origin: " + data.url);
-      return false;
-    }
-    
-    for (var name in data.headers)
-      if (inArray(name, settings.allowHeaders) == -1 &&
-          inArray(name, alwaysAllowHeaders) == -1) {
-        channel.error("header '" + name + "' is not allowed.");
-        return false;
-      }
     
     return true;
+  }
+  
+  function map(array, cb) {
+    var result = [];
+    for (var i = 0; i < array.length; i++)
+      result.push(cb(array[i]));
+    return result;
+  }
+
+  function trim(str) {
+    return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+  }
+  
+  function parseAccessControlHeaders(req) {
+    function parseList(req, header) {
+      var value = req.getResponseHeader(header);
+      if (!value)
+        return [];
+      var list = value.split(",");
+      return map(list, trim);
+    }
+    
+    return {
+      allowOrigin: req.getResponseHeader('Access-Control-Allow-Origin'),
+      allowMethods: parseList(req, 'Access-Control-Allow-Methods')
+    };
   }
   
   // parseUri 1.2.2
@@ -125,9 +156,7 @@ var PPX = (function() {
 	
   function SimpleChannel(other, onMessage, onError) {
     function getOtherWindow() {
-      try {  // Opera barfs here.
-        return ('contentWindow' in other) ? other.contentWindow : other;
-      } catch (e) { return other; }
+      return other.postMessage ? other : other.contentWindow;
     }
     
     var self = {
@@ -182,18 +211,31 @@ var PPX = (function() {
     },
     alwaysAllowHeaders: alwaysAllowHeaders,
     startServer: function startServer(settings) {
+      settings = settings || {};
+
       var otherWindow = settings.window || window.parent;
       var channel = SimpleChannel(otherWindow, function(data, origin) {
         if (data.cmd == "send") {
           var req = new XMLHttpRequest();
-
+          var accessControl = settings.accessControl || {};
           data.origin = origin;
           data.headers = decode(data.headers);
-          if (!validateRequest(data, settings, channel))
+
+          if (!isSameOrigin(window.location.href, data.url)) {
+            channel.error("url does not have same origin: " + data.url);
             return;
+          }
 
           req.open(data.method, data.url);
           req.onreadystatechange = function() {
+            if (req.readyState >= 2) {
+              var reqSettings = parseAccessControlHeaders(req);
+              extend(reqSettings, accessControl);
+              if (!validateRequest(data, reqSettings, channel)) {
+                req.abort();
+                return;
+              }
+            }
             channel.send({
               cmd: "readystatechange",
               readyState: req.readyState,
@@ -205,8 +247,17 @@ var PPX = (function() {
           };
 
           for (var name in data.headers)
-            req.setRequestHeader(name, data.headers[name]);
+            if (inArray(name, accessControl.allowHeaders) == -1 &&
+                inArray(name, alwaysAllowHeaders) == -1) {
+              if (accessControl.useStrictHeaders) {
+                channel.error("header '" + name + "' is not allowed.");
+                return;
+              } else
+                warn("custom header '" + name + "' is not allowed.");
+            } else
+              req.setRequestHeader(name, data.headers[name]);
 
+          req.setRequestHeader("X-Original-Origin", data.origin);
           req.send(data.body || null);
         }
       });
@@ -294,8 +345,7 @@ var PPX = (function() {
                 break;
               }
             }, function onError(message) {
-              if (window.console && window.console.warn)
-                window.console.warn(message);
+              warn(message);
               self.responseText = message;
               self.readyState = self.DONE;
               cleanup();
