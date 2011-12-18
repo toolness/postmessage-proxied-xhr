@@ -245,8 +245,7 @@ var PPX = (function() {
           };
 
           for (var name in data.headers)
-            if (inArray(name, accessControl.allowHeaders) == -1 &&
-                inArray(name, alwaysAllowHeaders) == -1) {
+            if (inArray(name, alwaysAllowHeaders) == -1) {
               if (name == 'X-Requested-With') {
                 /* Just ignore jQuery's X-Requested-With header. */
               } else {
