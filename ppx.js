@@ -187,7 +187,7 @@ var PPX = (function() {
     return self;
   }
 
-  var alwaysAllowHeaders = [
+  var simpleRequestHeaders = [
     "Accept",
     "Content-Type"
   ];
@@ -200,7 +200,7 @@ var PPX = (function() {
       isSameOrigin: isSameOrigin,
       absolutifyURL: absolutifyURL
     },
-    alwaysAllowHeaders: alwaysAllowHeaders,
+    simpleRequestHeaders: simpleRequestHeaders,
     startServer: function startServer(settings) {
       settings = settings || {};
 
@@ -238,7 +238,7 @@ var PPX = (function() {
           };
 
           for (var name in data.headers)
-            if (inArray(name, alwaysAllowHeaders) == -1) {
+            if (inArray(name, simpleRequestHeaders) == -1) {
               if (name == 'X-Requested-With') {
                 /* Just ignore jQuery's X-Requested-With header. */
               } else {
