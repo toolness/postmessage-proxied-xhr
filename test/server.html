@@ -4,11 +4,9 @@
 <script src="../ppx.js"></script>
 <script>
 PPX.startServer({
-  accessControl: {
-    // Similar to the 'Access-Control-Allow-Origin' CORS header.
-    allowOrigin: "*",
-    // Similar to the 'Access-Control-Allow-Methods' CORS header.
-    allowMethods: ["POST", "GET", "OPTIONS"]
+  modifyAccessControl: function(settings) {
+    settings.allowOrigin = "*";
+    settings.allowMethods = ["POST", "GET", "OPTIONS"];
   }
 });
 </script>

@@ -1,11 +1,4 @@
 var PPX = (function() {
-  function extend(obj, props) {
-    if (props)
-      for (var name in props)
-        obj[name] = props[name];
-    return obj;
-  }
-  
   function warn(msg) {
     if (window.console && window.console.warn)
       window.console.warn(msg);
@@ -215,7 +208,6 @@ var PPX = (function() {
       var channel = SimpleChannel(otherWindow, function(data, origin) {
         if (data.cmd == "send") {
           var req = new XMLHttpRequest();
-          var accessControl = settings.accessControl || {};
           data.origin = origin;
           data.headers = decode(data.headers);
 
@@ -227,9 +219,10 @@ var PPX = (function() {
           req.open(data.method, data.url);
           req.onreadystatechange = function() {
             if (req.readyState >= 2) {
-              var reqSettings = parseAccessControlHeaders(req);
-              extend(reqSettings, accessControl);
-              if (!validateRequest(data, reqSettings, channel)) {
+              var accessControl = parseAccessControlHeaders(req);
+              if (settings.modifyAccessControl)
+                settings.modifyAccessControl(accessControl, data);
+              if (!validateRequest(data, accessControl, channel)) {
                 req.abort();
                 return;
               }
