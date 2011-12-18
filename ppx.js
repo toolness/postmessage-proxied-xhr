@@ -6,7 +6,8 @@ var PPX = (function() {
     ],
     requestMethods: [
       "GET",
-      "POST"
+      "POST",
+      "HEAD"
     ],
     requestContentTypes: [
       "application/x-www-form-urlencoded",

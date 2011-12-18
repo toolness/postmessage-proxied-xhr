@@ -103,4 +103,17 @@
     req.send(null);
     stop();
   });
+
+  test("HEAD request works", function() {
+    var req = Request();
+    req.open("HEAD", "sample.txt");
+    req.onreadystatechange = function() {
+      if (req.readyState == 4 && req.status == 200) {
+        ok(req.getAllResponseHeaders().indexOf("text/plain") != -1);
+        start();
+      }
+    };
+    req.send(null);
+    stop();
+  });
 })();
