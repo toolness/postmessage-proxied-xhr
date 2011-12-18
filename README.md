@@ -10,6 +10,16 @@ Currently, the following features of the [XMLHttpRequest API][] are unsupported:
 * `getResponseHeader()` (though `getAllResponseHeaders()` is supported)
 * `responseXML`
 
+Several features of the massive [CORS Specification][] are unsupported:
+
+* Only [simple requests][] are currently supported; anything requiring a preflighted request will be rejected for security.
+
+* Response headers aren't automatically culled down to the [simple response header][] list as prescribed by the spec.
+
+* Because the `Origin` header can't be set by the same-origin proxied request, PPX sets an `X-Original-Origin` header with the origin of the window making the request. This may be used by servers to set the appropriate value for `Access-Control-Allow-Origin` in its response.
+
+* Because the same-origin proxied request can't control whether or not a cookie is transmitted during its request, all cross-origin requests sent should be assumed to have them. Note that we don't currently check the value of `Access-Control-Allow-Credentials` before returning responses, either, so *be very careful* if your site uses cookies.
+
 ## Similar Projects
 
 [pmxdr][] provides similar functionality but doesn't provide an XMLHttpRequest API, so it can't necessarily be used as a drop-in replacement. It's also larger than PPX, but supports more features out-of-the-box.
@@ -17,3 +27,6 @@ Currently, the following features of the [XMLHttpRequest API][] are unsupported:
   [Polyfill]: http://remysharp.com/2010/10/08/what-is-a-polyfill/
   [pmxdr]: https://github.com/eligrey/pmxdr
   [XMLHttpRequest API]: http://www.w3.org/TR/XMLHttpRequest/
+  [CORS Specification]: http://www.w3.org/TR/cors/
+  [simple requests]: https://developer.mozilla.org/En/HTTP_access_control#Simple_requests
+  [simple response header]: http://www.w3.org/TR/cors/#simple-response-header
