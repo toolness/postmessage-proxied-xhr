@@ -249,11 +249,8 @@ var PPX = (function() {
           for (var name in data.headers)
             if (inArray(name, accessControl.allowHeaders) == -1 &&
                 inArray(name, alwaysAllowHeaders) == -1) {
-              if (accessControl.useStrictHeaders) {
-                channel.error("header '" + name + "' is not allowed.");
-                return;
-              } else
-                warn("custom header '" + name + "' is not allowed.");
+              channel.error("header '" + name + "' is not allowed.");
+              return;
             } else
               req.setRequestHeader(name, data.headers[name]);
 
