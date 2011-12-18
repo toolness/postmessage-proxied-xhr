@@ -42,11 +42,11 @@ var PPX = (function() {
     return (a.protocol == b.protocol && a.authority == b.authority);
   }
 
-  function validateRequest(data, settings, channel) {
+  function validateRequest(data, access, channel) {
     var isValidMethod = (inArray(data.method.toUpperCase(),
-                                 settings.allowMethods) != -1);
+                                 access.allowMethods) != -1);
 
-    if (!settings.allowOrigin) {
+    if (!access.allowOrigin) {
       channel.error("CORS is unsupported at that path.");
       return false;
     }
@@ -56,7 +56,7 @@ var PPX = (function() {
       return false;
     }
 
-    if (settings.allowOrigin != "*" && data.origin != settings.allowOrigin) {
+    if (access.allowOrigin != "*" && data.origin != access.allowOrigin) {
       channel.error("message from invalid origin: " + data.origin);
       return;
     }
@@ -201,10 +201,10 @@ var PPX = (function() {
       absolutifyURL: absolutifyURL
     },
     simpleRequestHeaders: simpleRequestHeaders,
-    startServer: function startServer(settings) {
-      settings = settings || {};
+    startServer: function startServer(options) {
+      options = options || {};
 
-      var otherWindow = settings.window || window.parent;
+      var otherWindow = options.window || window.parent;
       var channel = SimpleChannel(otherWindow, function(data, origin) {
         if (data.cmd == "send") {
           var req = new XMLHttpRequest();
@@ -219,10 +219,10 @@ var PPX = (function() {
           req.open(data.method, data.url);
           req.onreadystatechange = function() {
             if (req.readyState == 2) {
-              var accessControl = parseAccessControlHeaders(req);
-              if (settings.modifyAccessControl)
-                settings.modifyAccessControl(accessControl, data);
-              if (!validateRequest(data, accessControl, channel)) {
+              var access = parseAccessControlHeaders(req);
+              if (options.modifyAccessControl)
+                options.modifyAccessControl(access, data);
+              if (!validateRequest(data, access, channel)) {
                 req.abort();
                 return;
               }

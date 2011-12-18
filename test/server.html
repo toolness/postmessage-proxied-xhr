@@ -4,9 +4,9 @@
 <script src="../ppx.js"></script>
 <script>
 PPX.startServer({
-  modifyAccessControl: function(settings) {
-    settings.allowOrigin = "*";
-    settings.allowMethods = ["POST", "GET"];
+  modifyAccessControl: function(access) {
+    access.allowOrigin = "*";
+    access.allowMethods = ["POST", "GET"];
   }
 });
 </script>
