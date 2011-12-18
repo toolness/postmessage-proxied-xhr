@@ -72,17 +72,6 @@
     equal(req.status, 0);
   }
 
-  // TODO: Why does this work on CORS XMLHttpRequest but
-  // fail via PXX?
-  // corsTest({
-  //   name: "method unsupported by CORS fails",
-  //   method: "POST",
-  //   path: "/cors/origin-all",
-  //   test: function(req) {
-  //     expectCORSError(req, "method 'POST' is not allowed.");
-  //   }
-  // });
-
   corsTest({
     path: "/cors/origin-foo.com",
     test: function(req) {

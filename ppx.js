@@ -112,16 +112,8 @@ var PPX = (function() {
   };
   
   function validateRequest(data, access, channel) {
-    var isValidMethod = (utils.inArray(data.method.toUpperCase(),
-                                       access.allowMethods) != -1);
-
     if (!access.allowOrigin) {
       channel.error("CORS is unsupported at that path.");
-      return false;
-    }
-    
-    if (!isValidMethod) {
-      channel.error("method '" + data.method + "' is not allowed.");
       return false;
     }
 
@@ -134,17 +126,8 @@ var PPX = (function() {
   }
 
   function parseAccessControlHeaders(req) {
-    function parseList(req, header) {
-      var value = req.getResponseHeader(header);
-      if (!value)
-        return [];
-      var list = value.split(",");
-      return utils.map(list, utils.trim);
-    }
-    
     return {
       allowOrigin: req.getResponseHeader('Access-Control-Allow-Origin'),
-      allowMethods: parseList(req, 'Access-Control-Allow-Methods')
     };
   }
 

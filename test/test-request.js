@@ -22,18 +22,6 @@
     }, new RegExp("request not initialized"));
   });
 
-  test("method not allowed error works", function() {
-    var req = Request();
-    req.open("POST", "sample.txt");
-    req.onreadystatechange = function() {
-      equal(req.readyState, req.DONE);
-      equal(req.responseText, "method 'POST' is not allowed.");
-      start();
-    };
-    req.send(null);
-    stop();
-  });
-
   test("same origin violation error works", function() {
     var req = Request();
     req.open("get", "http://example.com/foo");

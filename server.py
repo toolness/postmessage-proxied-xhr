@@ -67,40 +67,33 @@ class BasicFileServer(object):
         return self.try_loading(filename, env, start)
 
 def cors_handler(env, start):
-    def response(contents, origin=None, methods=None, headers=None):
+    def response(contents, origin=None):
         final_headers = [
             ('Content-Type', 'text/plain'),
             ('Content-Length', str(len(contents)))
         ]
         if origin:
             final_headers.append(('Access-Control-Allow-Origin', origin))
-        if methods:
-            final_headers.append(('Access-Control-Allow-Methods', methods))
-        if headers:
-            final_headers.append(('Access-Control-Allow-Headers', headers))            
         start('200 OK', final_headers)
         return [contents]
 
     if env['PATH_INFO'] == '/cors/origin-only-me':
         origin = (env.get('HTTP_ORIGIN') or
                   env.get('HTTP_X_ORIGINAL_ORIGIN'))
-        return response('hai2u', origin=origin, methods='GET')
+        return response('hai2u', origin=origin)
 
     if env['PATH_INFO'] == '/cors/origin-all':
-        return response('hai2u', origin='*',
-                        methods='GET')
+        return response('hai2u', origin='*')
 
     if env['PATH_INFO'] == '/cors/origin-all/post':
         length = env.get('CONTENT_LENGTH', '')
         data = 'nothing'
         if length:
             data = env['wsgi.input'].read(int(length))
-        return response('received ' + data, origin='*',
-                        methods='POST')
+        return response('received ' + data, origin='*')
 
     if env['PATH_INFO'] == '/cors/origin-foo.com':
-        return response('hai2u', origin='http://foo.com',
-                        methods='GET')
+        return response('hai2u', origin='http://foo.com')
 
     return None
 
