@@ -196,9 +196,7 @@ var PPX = (function() {
 
   var alwaysAllowHeaders = [
     "Accept",
-    "Content-Type",
-    /* Harmless header jQuery might add. */
-    "X-Requested-With"
+    "Content-Type"
   ];
 
   return {
@@ -249,8 +247,12 @@ var PPX = (function() {
           for (var name in data.headers)
             if (inArray(name, accessControl.allowHeaders) == -1 &&
                 inArray(name, alwaysAllowHeaders) == -1) {
-              channel.error("header '" + name + "' is not allowed.");
-              return;
+              if (name == 'X-Requested-With') {
+                /* Just ignore jQuery's X-Requested-With header. */
+              } else {
+                channel.error("header '" + name + "' is not allowed.");
+                return;
+              }
             } else
               req.setRequestHeader(name, data.headers[name]);
 
