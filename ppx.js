@@ -3,6 +3,10 @@ var PPX = (function() {
     requestHeaders: [
       "Accept",
       "Content-Type"
+    ],
+    requestMethods: [
+      "GET",
+      "POST"
     ]
   };
   
@@ -199,6 +203,10 @@ var PPX = (function() {
 
           if (!utils.isSameOrigin(window.location.href, data.url)) {
             channel.error("url does not have same origin: " + data.url);
+            return;
+          }
+          if (utils.inArray(data.method, config.requestMethods) == -1) {
+            channel.error("not a simple request method: " + data.method);
             return;
           }
 

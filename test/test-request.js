@@ -3,6 +3,18 @@
 
   var Request = PPX.buildClientConstructor("server.html");
 
+  test("only non-preflighted request methods are supported", function() {
+    var req = Request();
+    req.open("PUT", "sample.txt");
+    req.onreadystatechange = function() {
+      equal(req.readyState, req.DONE);
+      equal(req.responseText, "not a simple request method: PUT");
+      start();
+    };
+    req.send(null);
+    stop();
+  });
+  
   test("exception raised if send() called before open()", function() {
     raises(function() {
       var req = Request();
@@ -12,10 +24,10 @@
 
   test("method not allowed error works", function() {
     var req = Request();
-    req.open("put", "sample.txt");
+    req.open("POST", "sample.txt");
     req.onreadystatechange = function() {
       equal(req.readyState, req.DONE);
-      equal(req.responseText, "method 'put' is not allowed.");
+      equal(req.responseText, "method 'POST' is not allowed.");
       start();
     };
     req.send(null);
@@ -36,7 +48,7 @@
 
   test("header not allowed error works", function() {
     var req = Request();
-    req.open("get", "sample.txt");
+    req.open("GET", "sample.txt");
     req.setRequestHeader('X-blarg', 'hi');
     req.onreadystatechange = function() {
       equal(req.readyState, req.DONE);
@@ -77,7 +89,7 @@
     }
 
     var req = Request();
-    req.open("get", "sample.txt");
+    req.open("GET", "sample.txt");
     req.onreadystatechange = function() {
       checkTypes();
       if (req.readyState == 4 && req.status == 200) {
@@ -93,7 +105,7 @@
 
   test("response '404 Not Found' works", function() {
     var req = Request();
-    req.open("get", "nonexistent.txt");
+    req.open("GET", "nonexistent.txt");
     req.onreadystatechange = function() {
       if (req.readyState == 4 && req.status == 404) {
         ok(true, "Status 404 was returned.");
