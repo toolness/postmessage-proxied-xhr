@@ -24,31 +24,35 @@ This is the host iframe which will proxy requests for you.
 
 From a page on bar.com, you can access foo.com like so:
 
-    <script src="http://foo.com/ppx.js"></script>
-    <script>
-      var FooXHR = PPX.buildClientConstructor("http://foo.com/server.html");
-      var req = new FooXHR();
-      req.open("GET", "http://foo.com/api/stuff");
-      req.onreadystatechange = function() {
-        if (req.readyState == 4 && req.status == 200)
-          alert("the response is " + req.responseText);
-      };
-      req.send(null);
-    </script>
+```html
+<script src="http://foo.com/ppx.js"></script>
+<script>
+  var FooXHR = PPX.buildClientConstructor("http://foo.com/server.html");
+  var req = new FooXHR();
+  req.open("GET", "http://foo.com/api/stuff");
+  req.onreadystatechange = function() {
+    if (req.readyState == 4 && req.status == 200)
+      alert("the response is " + req.responseText);
+  };
+  req.send(null);
+</script>
+```
 
 ### Using PPX with jQuery
 
 The above example can be made simpler using the PPX jQuery plugin:
 
-    <script src="http://code.jquery.com/jquery-1.7.1.js"></script>
-    <script src="http://foo.com/ppx.js"></script>
-    <script src="http://foo.com/ppx.jquery.js"></script>
-    <script>
-    jQuery.proxyAjaxThroughPostMessage("http://foo.com/server.html");
-    jQuery.get("http://foo.com/api/stuff", function(data) {
-      alert("the response is " + data);
-    });
-    </script>
+```html
+<script src="http://code.jquery.com/jquery-1.7.1.js"></script>
+<script src="http://foo.com/ppx.js"></script>
+<script src="http://foo.com/ppx.jquery.js"></script>
+<script>
+  jQuery.proxyAjaxThroughPostMessage("http://foo.com/server.html");
+  jQuery.get("http://foo.com/api/stuff", function(data) {
+    alert("the response is " + data);
+  });
+</script>
+```
 
 The call `jQuery.proxyAjaxThroughPostMessage()` sets up an [ajax prefilter][] which will automatically proxy requests to foo.com if the host browser doesn't already support CORS.
 
@@ -56,21 +60,23 @@ The call `jQuery.proxyAjaxThroughPostMessage()` sets up an [ajax prefilter][] wh
 
 You can use PPX with [yepnope.js][] and jQuery, too:
 
-    <script src="http://code.jquery.com/jquery-1.7.1.js"></script>
-    <script src="yepnope.js"></script>
-    <script>
-    yepnope({
-      test: jQuery.support.cors,
-      nope: ["http://foo.com/ppx.js", "http://foo.com/ppx.jquery.js"],
-      complete: function() {
-        if (!jQuery.support.cors)
-          jQuery.proxyAjaxThroughPostMessage("http://foo.com/server.html");
-        jQuery.get("http://foo.com/api/stuff", function(data) {
-          alert("the response is " + data);
-        });
-      }
-    });
-    </script>
+```html
+<script src="http://code.jquery.com/jquery-1.7.1.js"></script>
+<script src="yepnope.js"></script>
+<script>
+  yepnope({
+    test: jQuery.support.cors,
+    nope: ["http://foo.com/ppx.js", "http://foo.com/ppx.jquery.js"],
+    complete: function() {
+      if (!jQuery.support.cors)
+        jQuery.proxyAjaxThroughPostMessage("http://foo.com/server.html");
+      jQuery.get("http://foo.com/api/stuff", function(data) {
+        alert("the response is " + data);
+      });
+    }
+  });
+</script>
+```
 
 This will only load PPX's JS code if CORS support isn't detected in the host browser.
 
