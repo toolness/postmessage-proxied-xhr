@@ -13,7 +13,7 @@ Create a file at http://foo.com/server.html and put the following code in it:
 ```html
 <!DOCTYPE html>
 <meta charset="utf-8">
-<title>PostMessageProxiedXHR Server Frame</title>
+<title>PPX Server Frame</title>
 <script src="ppx.js"></script>
 <script>PPX.startServer();</script>
 ```
