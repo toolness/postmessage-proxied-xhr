@@ -72,6 +72,16 @@ You can use PPX with [yepnope.js][] and jQuery, too:
 
 This will only load PPX's JS code if CORS support isn't detected in the host browser.
 
+## Development
+
+After cloning the git repository and entering its directory, you can start the development server by running:
+
+    python server.py
+    
+This will start two local web servers on ports 9000 and 9001. The functional tests make CORS requests from one to the other to ensure that everything works as expected.
+
+To start the tests, browse to http://localhost:9000/test/.
+
 ## Limitations
 
 Currently, the following features of the [XMLHttpRequest API][] are unsupported:
