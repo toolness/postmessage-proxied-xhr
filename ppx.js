@@ -178,6 +178,7 @@ var PPX = (function() {
   }
 
   return {
+    version: "0.1",
     utils: utils,
     config: config,
     startServer: function startServer(options) {
