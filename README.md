@@ -10,11 +10,13 @@ Suppose you have a website at http://foo.com which exposes a cross-origin REST A
 
 Create a file at http://foo.com/server.html and put the following code in it:
 
-    <!DOCTYPE html>
-    <meta charset="utf-8">
-    <title>PostMessageProxiedXHR Server Frame</title>
-    <script src="ppx.js"></script>
-    <script>PPX.startServer();</script>
+```html
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>PostMessageProxiedXHR Server Frame</title>
+<script src="ppx.js"></script>
+<script>PPX.startServer();</script>
+```
 
 This is the host iframe which will proxy requests for you.
 
