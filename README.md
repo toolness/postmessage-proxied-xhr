@@ -12,13 +12,13 @@ Currently, the following features of the [XMLHttpRequest API][] are unsupported:
 
 Several features of the massive [CORS Specification][] are unsupported:
 
-* Only [simple requests][] are currently supported; anything requiring a preflighted request will be rejected for security.
+* Only [simple requests][] can be sent; anything requiring a preflighted request will be rejected for security purposes.
 
 * Response headers aren't automatically culled down to the [simple response header][] list as prescribed by the spec.
 
-* Because the `Origin` header can't be set by the same-origin proxied request, PPX sets an `X-Original-Origin` header with the origin of the window making the request. This may be used by servers to set the appropriate value for `Access-Control-Allow-Origin` in its response.
+* Because the `Origin` header can't be set by the same-origin proxied request, PPX sets an `X-Original-Origin` header with the origin of the window making the request. This may be used by servers in place of `Origin`, e.g. to set the appropriate value for `Access-Control-Allow-Origin` in the response.
 
-* Because the same-origin proxied request can't control whether or not a cookie is transmitted during its request, all cross-origin requests sent should be assumed to have them. Note that we don't currently check the value of `Access-Control-Allow-Credentials` before returning responses, either, so *be very careful* if your site uses cookies.
+* Because the same-origin proxied request can't control whether or not a cookie is transmitted during its request, all cross-origin requests sent should be assumed to have them. Note that we don't currently check the value of `Access-Control-Allow-Credentials` before returning responses, either, so be *very careful* if your site uses cookies.
 
 ## Similar Projects
 
