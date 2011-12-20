@@ -38,6 +38,8 @@ From a page on bar.com, you can access foo.com like so:
 </script>
 ```
 
+As you can probably guess, `PPX.buildClientConstructor()` returns an object much like `window.XMLHttpRequest`. This can then be used as-is, or given to another third-party library to make cross-origin communication as familiar as a normal ajax request.
+
 ### Using PPX with jQuery
 
 The above example can be made simpler using the PPX jQuery plugin:
