@@ -114,6 +114,8 @@ Several features of the massive [CORS Specification][] are unsupported:
 
 [pmxdr][] provides similar functionality but doesn't provide an XMLHttpRequest API, so it can't necessarily be used as a drop-in replacement. It's also larger than PPX, but supports more features out-of-the-box.
 
+There's [xdomain](https://github.com/jpillora/xdomain). It doesn't use postMessage.
+
 ## License
 
 ```
